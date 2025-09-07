@@ -25,6 +25,6 @@
 Склонируй репозиторий и установи зависимости:
 
 ```bash
-git clone https://github.com/zed31rus/название-репозитория.git
-cd название-репозитория
+git clone https://github.com/zed31rus/SvelteKit-Frontend.git
+cd SvelteKit-Frontend
 npm install
