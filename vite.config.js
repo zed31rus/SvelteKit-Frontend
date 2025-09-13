@@ -5,10 +5,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	server: {
-    port: 3152,
+    port: 3001,
     host: '',
     allowedHosts: [
-      "localhost",
       "beta.zed31rus.ru"
     ]
   }
