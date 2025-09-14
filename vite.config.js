@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3001,
     host: '',
     allowedHosts: [
-      "beta.zed31rus.ru"
+      "zed31rus.ru"
     ]
   }
 });

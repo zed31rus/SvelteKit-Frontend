@@ -26,7 +26,7 @@
   }
 
   onMount(() => {
-    socket = io('https://api.zed31rus.ru');
+    socket = io('https://soundpadapi.zed31rus.ru');
 
     socket.on('currentUpdated', (data) => {
       current = data;
@@ -81,7 +81,7 @@
   }
 
   async function play(index) {
-    await fetch('https://api.zed31rus.ru/soundpad/playSound', {
+    await fetch('https://soundpadapi.zed31rus.ru/soundpad/playSound', {
       method: 'POST',
       body: JSON.stringify({ soundId: index }),
       headers: { 'Content-Type': 'application/json' }
@@ -89,21 +89,21 @@
   }
 
   async function stop() {
-    await fetch('https://api.zed31rus.ru/soundpad/stopSound', {
+    await fetch('https://soundpadapi.zed31rus.ru/soundpad/stopSound', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
   async function pause() {
-    await fetch('https://api.zed31rus.ru/soundpad/pauseSound', {
+    await fetch('https://soundpadapi.zed31rus.ru/soundpad/pauseSound', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
   async function jump(percentage) {
-    await fetch('https://api.zed31rus.ru/soundpad/jump', {
+    await fetch('https://soundpadapi.zed31rus.ru/soundpad/jump', {
       method: 'POST',
       body: JSON.stringify({ percentage }),
       headers: { 'Content-Type': 'application/json' }
@@ -111,7 +111,7 @@
   }
 
   async function setVolume(volumeVal) {
-    await fetch('https://api.zed31rus.ru/soundpad/setVolume', {
+    await fetch('https://soundpadapi.zed31rus.ru/soundpad/setVolume', {
       method: 'POST',
       body: JSON.stringify({ volume: volumeVal }),
       headers: { 'Content-Type': 'application/json' }
