@@ -14,7 +14,8 @@
   let percentage = 0;
   let volume = 0;
   let soundContainer;
-  let soundContainerHeight = new Tween(40, { duration: 800, easing: linear });
+  let soundContainerHeight = 40;
+  //let soundContainerHeight = new Tween(40, { duration: 800, easing: linear });
   let currentUser;
   let soundFileInput;
 
@@ -97,17 +98,21 @@
     );
   }
 
+  const sorters = {
+    index: (a, b) => a.index - b.index,
+    tag: (a, b) => a.tag.localeCompare(b.tag),
+    playCount: (a, b) => b.playCount - a.playCount,
+  }
+
   function sort(list, method) {
-    if (method === 'index') return list.sort((a, b) => a.index - b.index);
-    if (method === 'tag') return list.sort((a, b) => a.tag.localeCompare(b.tag));
-    if (method === 'playCount') return list.sort((a, b) => b.playCount - a.playCount);
-    return list;
+    const sorter = sorters[method];
+    return sorter ? [...list].sort(sorter) : [...list];
   }
 
   async function updateSize() {
     await tick();
     const maxContainerHeight = window.innerHeight - 23 * 8;
-    soundContainerHeight.target = (Math.min(soundContainer.scrollHeight, maxContainerHeight));
+    soundContainerHeight = Math.min(soundContainer.scrollHeight, maxContainerHeight);
   }
 
   async function play(index) {
@@ -174,7 +179,7 @@
 
 <div
   class="soundContainer content-start shadow-xl bg-black/30 p-2 backdrop-blur rounded-r-md rounded-l-xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 overflow-y-auto ml-4 mr-4 mt-0"
-  style="height: {soundContainerHeight.current}px;"
+  style="height: {soundContainerHeight}px;"
   bind:this={soundContainer}
 >
   {#if filteredList.length > 0}
