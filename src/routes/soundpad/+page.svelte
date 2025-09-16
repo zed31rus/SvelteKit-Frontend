@@ -4,7 +4,7 @@
   import { Tween } from 'svelte/motion';
   import { linear } from 'svelte/easing';
   import { animate } from 'motion';
-  import { userStore } from '$lib/auth/stores/user';
+  import { fetchUser, userStore } from '$lib/auth/stores/user';
 
   let soundList = [];
   let filteredList = [];
@@ -18,6 +18,7 @@
   //let soundContainerHeight = new Tween(40, { duration: 800, easing: linear });
   let currentUser;
   let soundFileInput;
+  let mountedIndexes = new Set();
 
   async function handleSoundFiles(SoundFiles) {
     if (!SoundFiles || SoundFiles.length === 0 ) return;
@@ -26,11 +27,20 @@
     for (const SoundFile of SoundFiles) {
       formData.append('files', SoundFile)
     }
-      await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
+      response = await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
         method: 'POST',
         credentials: 'include',
         body: formData
       });
+
+      if (response.status === 401) {
+        fetchUser()
+        await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      }
   }
 
   function openSoundFileDialog() {
@@ -80,14 +90,30 @@
     return () => socket.disconnect();
   });
 
-  export function soundButtonAnimateOnMount(node, { n = 0 } = {}) {
-    animate(node, {
-      opacity: [0, 1],
-      transform: ['translateY(20px) rotate(5deg) scale(0.5)', 'translateY(0) rotate(0deg) scale(1)']
-    }, { delay: (n+1) * 0.01 });
+  export function soundButtonAnimateOnMount(node, { n = 0, index } = {}) {
+  let delay;
 
-    return {};
+  if (mountedIndexes.has(index)) {
+    delay = 0.05;
+  } else {
+    delay = (n + 1) * 0.01;
+    mountedIndexes.add(index);
   }
+
+  animate(
+    node,
+    {
+      opacity: [0, 1],
+      transform: [
+        'translateY(20px) rotate(5deg) scale(0.5)',
+        'translateY(0) rotate(0deg) scale(1)'
+      ]
+    },
+    { delay }
+  );
+
+  return {};
+}
 
   function search(list, query) {
     if (!query) return list;
@@ -183,10 +209,10 @@
   bind:this={soundContainer}
 >
   {#if filteredList.length > 0}
-    {#each filteredList as { index, tag, duration, playCount }, n (index + '-' + searchInput + '-' + sortMethod)}
+    {#each filteredList as { index, tag, duration, playCount }, n (index)}
       <button
         class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
-        use:soundButtonAnimateOnMount={{ n }}
+        use:soundButtonAnimateOnMount={{ n, index }}
         on:click={async () => {
           current?.sound?.index === index && (current.status === 'PLAYING' || current.status === 'PAUSED')
             ? await pause()
