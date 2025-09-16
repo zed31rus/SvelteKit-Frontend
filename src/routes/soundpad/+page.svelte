@@ -4,6 +4,7 @@
   import { Tween } from 'svelte/motion';
   import { linear } from 'svelte/easing';
   import { animate } from 'motion';
+  import { userStore } from '$lib/auth/stores/user';
 
   let soundList = [];
   let filteredList = [];
@@ -14,10 +15,39 @@
   let volume = 0;
   let soundContainer;
   let soundContainerHeight = new Tween(40, { duration: 800, easing: linear });
+  let currentUser;
+  let soundFileInput;
+
+  async function handleSoundFiles(SoundFiles) {
+    if (!SoundFiles || SoundFiles.length === 0 ) return;
+
+    const formData = new FormData();
+    for (const SoundFile of SoundFiles) {
+      formData.append('files', SoundFile)
+    }
+      await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+  }
+
+  function openSoundFileDialog() {
+    soundFileInput.click();
+  }
+
+  function handleSoundDrop(e) {
+    e.preventDefault();
+    handleSoundFiles(e.dataTransfer.files);
+  }
 
   let socket;
   let sortMethod = 'index';
   let searchInput = "";
+
+  userStore.subscribe(user => {
+		currentUser = user
+	})
 
   $: {
     const searched = search(soundList, searchInput);
@@ -77,7 +107,7 @@
   async function updateSize() {
     await tick();
     const maxContainerHeight = window.innerHeight - 23 * 8;
-    soundContainerHeight = (Math.min(soundContainer.scrollHeight, maxContainerHeight));
+    soundContainerHeight.target = (Math.min(soundContainer.scrollHeight, maxContainerHeight));
   }
 
   async function play(index) {
@@ -144,10 +174,10 @@
 
 <div
   class="soundContainer content-start shadow-xl bg-black/30 p-2 backdrop-blur rounded-r-md rounded-l-xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 overflow-y-auto ml-4 mr-4 mt-0"
-  style="height: {soundContainerHeight}px;"
+  style="height: {soundContainerHeight.current}px;"
   bind:this={soundContainer}
 >
-  {#if soundList.length > 0}
+  {#if filteredList.length > 0}
     {#each filteredList as { index, tag, duration, playCount }, n (index + '-' + searchInput + '-' + sortMethod)}
       <button
         class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
@@ -178,6 +208,22 @@
         </div>
       </button>
     {/each}
+    {#if currentUser?.isCheckedByAdmin}
+      <input type="file" accept="audio/*" multiple bind:this={soundFileInput} class="hidden" on:change={(e) => handleSoundFiles(e.currentTarget.files)}>
+
+      <button
+      class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
+      use:soundButtonAnimateOnMount={{n: filteredList.length}}
+      on:click={openSoundFileDialog}
+      on:dragover|preventDefault
+      on:drop={handleSoundDrop}
+      >
+          <div class="w-full flex flex-col">
+            <span>+</span>
+            <span>addSound</span>
+          </div>
+      </button>
+    {/if}
   {:else}
     <p class="text-gray-500">Загрузка звуков...</p>
   {/if}
