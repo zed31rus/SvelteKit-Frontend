@@ -20,6 +20,7 @@
     {:else}
         <span class="text-red-400">❌Не проверен</span>
     {/if}
+    <a href="/logout">Выйти</a>
   </div>
 </div>
 

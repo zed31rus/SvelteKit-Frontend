@@ -1,8 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte';
   import { io } from 'socket.io-client';
-  import { Tween } from 'svelte/motion';
-  import { linear } from 'svelte/easing';
   import { animate } from 'motion';
   import { fetchUser, userStore } from '$lib/auth/stores/user';
 
@@ -15,32 +13,44 @@
   let volume = 0;
   let soundContainer;
   let soundContainerHeight = 40;
-  //let soundContainerHeight = new Tween(40, { duration: 800, easing: linear });
   let currentUser;
   let soundFileInput;
-  let mountedIndexes = new Set();
+
+  let seenIndexes = new Set();
+  let animationOrderMap = new Map();
+
+  const INITIAL_STEP = 0.01;//10ms
+  const BASE_NEW_DELAY = 0.005;//5ms
+  const NEW_BATCH_STEP = 0.01;//10ms
+
+  let socket;
+  let sortMethod = 'index';
+  let searchInput = "";
+
+  userStore.subscribe(user => {
+    currentUser = user;
+  });
 
   async function handleSoundFiles(SoundFiles) {
-    if (!SoundFiles || SoundFiles.length === 0 ) return;
+    if (!SoundFiles || SoundFiles.length === 0) return;
 
     const formData = new FormData();
-    for (const SoundFile of SoundFiles) {
-      formData.append('files', SoundFile)
-    }
-      response = await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
+    for (const SoundFile of SoundFiles) formData.append('files', SoundFile);
 
-      if (response.status === 401) {
-        fetchUser()
-        await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
+    let response = await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    if (response.status === 401) {
+      await fetchUser();
+      await fetch('https://soundpadapi.zed31rus.ru/soundpad/addSound', {
         method: 'POST',
         credentials: 'include',
         body: formData
       });
-      }
+    }
   }
 
   function openSoundFileDialog() {
@@ -51,69 +61,6 @@
     e.preventDefault();
     handleSoundFiles(e.dataTransfer.files);
   }
-
-  let socket;
-  let sortMethod = 'index';
-  let searchInput = "";
-
-  userStore.subscribe(user => {
-		currentUser = user
-	})
-
-  $: {
-    const searched = search(soundList, searchInput);
-    filteredList = sort(searched, sortMethod);
-    updateSize();
-  }
-
-  onMount(() => {
-    socket = io('https://soundpadapi.zed31rus.ru');
-
-    socket.on('currentUpdated', (data) => {
-      current = data;
-      percentage = data.percentage;
-    });
-
-    socket.on('historyUpdated', (data) => {
-      history = data;
-    });
-
-    socket.on('soundListUpdated', (data) => {
-      soundList = data;
-      updateSize();
-    });
-
-    socket.on('volumeUpdated', (data) => {
-      volume = data;
-    });
-
-    return () => socket.disconnect();
-  });
-
-  export function soundButtonAnimateOnMount(node, { n = 0, index } = {}) {
-  let delay;
-
-  if (mountedIndexes.has(index)) {
-    delay = 0.05;
-  } else {
-    delay = (n + 1) * 0.01;
-    mountedIndexes.add(index);
-  }
-
-  animate(
-    node,
-    {
-      opacity: [0, 1],
-      transform: [
-        'translateY(20px) rotate(5deg) scale(0.5)',
-        'translateY(0) rotate(0deg) scale(1)'
-      ]
-    },
-    { delay }
-  );
-
-  return {};
-}
 
   function search(list, query) {
     if (!query) return list;
@@ -128,7 +75,7 @@
     index: (a, b) => a.index - b.index,
     tag: (a, b) => a.tag.localeCompare(b.tag),
     playCount: (a, b) => b.playCount - a.playCount,
-  }
+  };
 
   function sort(list, method) {
     const sorter = sorters[method];
@@ -178,6 +125,91 @@
       headers: { 'Content-Type': 'application/json' }
     });
   }
+
+  $: {
+    const searched = search(soundList, searchInput);
+    filteredList = sort(searched, sortMethod);
+    updateSize();
+  }
+
+  $: if (filteredList) {
+    const currentSet = new Set(filteredList.map(s => s.index));
+    for (const id of Array.from(seenIndexes)) {
+      if (!currentSet.has(id)) seenIndexes.delete(id);
+    }
+
+    const unseenInFiltered = filteredList
+      .map((it) => it.index)
+      .filter(idx => !seenIndexes.has(idx));
+
+    if (seenIndexes.size === 0 && unseenInFiltered.length > 0 && unseenInFiltered.length === filteredList.length) {
+      unseenInFiltered.forEach((idx, i) => animationOrderMap.set(idx, i));
+    } else if (unseenInFiltered.length > 0) {
+      unseenInFiltered.forEach((idx, i) => animationOrderMap.set(idx, i));
+    }
+  }
+
+  export function soundButtonAnimateOnMount(node, { n = 0, index } = {}) {
+    if (seenIndexes.has(index)) {
+      animate(
+        node,
+        {
+          opacity: [0, 1],
+          transform: ['translateY(20px) rotate(5deg) scale(0.5)', 'translateY(0) rotate(0deg) scale(1)']
+        },
+        { delay: 0 }
+      );
+      return {};
+    }
+
+    let delay = BASE_NEW_DELAY;
+    if (animationOrderMap.has(index)) {
+      const pos = animationOrderMap.get(index);
+      if (seenIndexes.size === 0 && animationOrderMap.size >= filteredList.length) {
+        delay = pos * INITIAL_STEP;
+      } else {
+        delay = BASE_NEW_DELAY + pos * NEW_BATCH_STEP;
+      }
+    }
+
+    animate(
+      node,
+      {
+        opacity: [0, 1],
+        transform: ['translateY(20px) rotate(5deg) scale(0.5)', 'translateY(0) rotate(0deg) scale(1)']
+      },
+      { delay }
+    );
+
+    seenIndexes.add(index);
+    animationOrderMap.delete(index);
+
+    return {};
+  }
+
+  onMount(() => {
+    socket = io('https://soundpadapi.zed31rus.ru');
+
+    socket.on('currentUpdated', (data) => {
+      current = data;
+      percentage = data.percentage;
+    });
+
+    socket.on('historyUpdated', (data) => {
+      history = data;
+    });
+
+    socket.on('soundListUpdated', (data) => {
+      soundList = data;
+      updateSize();
+    });
+
+    socket.on('volumeUpdated', (data) => {
+      volume = data;
+    });
+
+    return () => socket.disconnect();
+  });
 </script>
 
 <div class="flex item-center justify-center">

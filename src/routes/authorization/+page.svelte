@@ -28,7 +28,7 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      alert(`${mode === 'login' ? 'Вход' : 'Регистрация'} успешна!`);
+      window.location.href = "/profile"
       
       fetchUser();
     } catch (err) {
