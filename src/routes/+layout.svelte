@@ -62,7 +62,7 @@
 <!-- Hover панелька(в мытищах) -->
 <div
 	bind:this={hoverPanelRef}
-	class="absolute top-0 left-0 z-2 opacity-0 w-4 h-full"
+	class="absolute top-0 left-0 z-1000 opacity-0 w-8 h-full"
 	role="presentation"
 	onclick={() => {sidePanelVisible = !sidePanelVisible;}}
 	onmouseenter={() => sidePanelLittle = true}
