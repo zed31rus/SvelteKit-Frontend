@@ -1,5 +1,5 @@
 <script>
-    import { fetchUser } from "$lib/auth/stores/user";
+    import { fetchUser } from "$lib/stores/user";
 
   let mode = 'login'; // "login" или "register"
 
@@ -33,6 +33,7 @@
       fetchUser();
     } catch (err) {
       alert("Ошибка: " + err.message);
+      console.error(err)
     }
   }
 </script>

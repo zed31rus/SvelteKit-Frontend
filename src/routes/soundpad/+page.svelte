@@ -2,7 +2,7 @@
   import { onMount, tick } from 'svelte';
   import { io } from 'socket.io-client';
   import { animate } from 'motion';
-  import { fetchUser, userStore } from '$lib/auth/stores/user';
+  import { fetchUser, userStore } from '$lib/stores/user';
 
   let soundList = [];
   let filteredList = [];
@@ -12,7 +12,6 @@
   let percentage = 0;
   let volume = 0;
   let soundContainer;
-  let soundContainerHeight = 40;
   let currentUser;
   let soundFileInput;
 
@@ -82,12 +81,6 @@
     return sorter ? [...list].sort(sorter) : [...list];
   }
 
-  async function updateSize() {
-    await tick();
-    const maxContainerHeight = window.innerHeight - 23 * 8;
-    soundContainerHeight = Math.min(soundContainer.scrollHeight, maxContainerHeight);
-  }
-
   async function play(index) {
     await fetch('https://soundpadapi.zed31rus.ru/soundpad/playSound', {
       method: 'POST',
@@ -126,12 +119,6 @@
     });
   }
 
-  $: {
-    const searched = search(soundList, searchInput);
-    filteredList = sort(searched, sortMethod);
-    updateSize();
-  }
-
   $: if (filteredList) {
     const currentSet = new Set(filteredList.map(s => s.index));
     for (const id of Array.from(seenIndexes)) {
@@ -148,6 +135,12 @@
       unseenInFiltered.forEach((idx, i) => animationOrderMap.set(idx, i));
     }
   }
+
+    $: {
+    const searched = search(soundList, searchInput);
+    filteredList = sort(searched, sortMethod);
+  }
+
 
   export function soundButtonAnimateOnMount(node, { n = 0, index } = {}) {
     if (seenIndexes.has(index)) {
@@ -201,7 +194,6 @@
 
     socket.on('soundListUpdated', (data) => {
       soundList = data;
-      updateSize();
     });
 
     socket.on('volumeUpdated', (data) => {
@@ -212,147 +204,147 @@
   });
 </script>
 
-<div class="flex item-center justify-center">
-  <h1>zed31rus_</h1>
-</div>
+<div id="main" class="flex flex-col h-[calc(100vh-1rem)]">
+  <div id="searchcontainer" class="flex flex-col sm:flex-row gap-2 ml-4 mb-2 mt-4 mr-4 relative">
+    <select
+      bind:value={sortMethod}
+      class="bg-black/30 text-white px-4 py-2 rounded-lg shadow-md backdrop-blur border-0"
+    >
+      <option disabled>Сортировка</option>
+      <option value="index">Номер</option>
+      <option value="playCount">Популярность</option>
+      <option value="tag">Название</option>
+    </select>
 
-<div id="searchcontainer" class="flex flex-col sm:flex-row gap-2 ml-4 mb-2 mr-4 h-10">
-  <select
-    bind:value={sortMethod}
-    class="bg-black/30 text-white px-4 py-2 rounded-lg shadow-md backdrop-blur border-0"
-  >
-    <option disabled>Сортировка</option>
-    <option value="index">Номер</option>
-    <option value="playCount">Популярность</option>
-    <option value="tag">Название</option>
-  </select>
-
-  <input
-    type="text"
-    placeholder="🔍 Поиск по названию..."
-    bind:value={searchInput}
-    class="bg-black/30 text-white px-4 py-2 rounded-lg shadow-xl backdrop-blur border-0"
-  />
-</div>
-
-<div
-  class="soundContainer content-start shadow-xl bg-black/30 p-2 backdrop-blur rounded-r-md rounded-l-xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 overflow-y-auto ml-4 mr-4 mt-0"
-  style="height: {soundContainerHeight}px;"
-  bind:this={soundContainer}
->
-  {#if filteredList.length > 0}
-    {#each filteredList as { index, tag, duration, playCount }, n (index)}
-      <button
-        class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
-        use:soundButtonAnimateOnMount={{ n, index }}
-        on:click={async () => {
-          current?.sound?.index === index && (current.status === 'PLAYING' || current.status === 'PAUSED')
-            ? await pause()
-            : await play(index);
-        }}
-      >
-        <div class="w-full flex flex-col">
-          {#if current?.sound?.index === index}
-            {#if current.status === 'PLAYING'}
-              <span class="text-green-400 font-bold">⏸ pause</span>
-            {:else if current.status === 'PAUSED'}
-              <span class="text-yellow-400 font-bold">▶️ resume</span>
-            {:else}
-              <span>{tag}</span>
-            {/if}
-          {:else}
-            <span class="truncate">{tag}</span>
-          {/if}
-          <div class="text-[10px] text-gray-400 flex justify-between w-full">
-            <span># {index}</span>
-            <span>{duration}</span>
-            <span>▶ {playCount}</span>
-          </div>
-        </div>
-      </button>
-    {/each}
-    {#if currentUser?.isCheckedByAdmin}
-      <input type="file" accept="audio/*" multiple bind:this={soundFileInput} class="hidden" on:change={(e) => handleSoundFiles(e.currentTarget.files)}>
-
-      <button
-      class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
-      use:soundButtonAnimateOnMount={{n: filteredList.length}}
-      on:click={openSoundFileDialog}
-      on:dragover|preventDefault
-      on:drop={handleSoundDrop}
-      >
-          <div class="w-full flex flex-col">
-            <span>+</span>
-            <span>addSound</span>
-          </div>
-      </button>
-    {/if}
-  {:else}
-    <p class="text-gray-500">Загрузка звуков...</p>
-  {/if}
-</div>
-
-<div class="fixed bg-black/50 backdrop-blur rounded-xl shadow-xl bottom-17 left-0 right-0 m-4">
-  <div class="flex items-center gap-4 pr-6 pl-4 w-full">
     <input
-      type="range"
-      max="100"
-      class="progressbar flex-grow rounded-xl w-full h-2 cursor-pointer"
-      style="background: linear-gradient(to right, gray {percentage}%, white {percentage}%)"
-      value={percentage}
-      on:input={(e) => jump(e.currentTarget.value)}
+      type="text"
+      placeholder="🔍 Поиск по названию..."
+      bind:value={searchInput}
+      class="bg-black/30 text-white px-4 py-2 rounded-lg shadow-xl backdrop-blur border-0"
     />
-    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 min-w-[150px] max-w-[250px] truncate text-sm text-gray-300">
-      <span class="truncate">
-        🎵 {current?.sound?.tag || current?.sound?.title || '—'}
-      </span>
-      <span class="text-xs text-gray-400">
-        {current?.positionmmss || '0:00'} / {current?.durationmmss || '0:00'}
-      </span>
-    </div>
+
   </div>
-</div>
 
-<div class="fixed bottom-0 left-0 right-0 m-4 bg-black/50 backdrop-blur rounded-xl shadow-xl h-15">
-  <div class="flex items-center justify-between p-4 gap-4">
-    <div class="flex gap-2">
-      <button
-        type="button"
-        on:click={stop}
-        class="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded shadow-xl cursor-pointer"
-      >
-        ⏹ Stop
-      </button>
-      <button
-        type="button"
-        on:click={pause}
-        class="px-3 py-1 text-sm bg-yellow-500 hover:bg-yellow-600 text-black rounded shadow-xl cursor-pointer"
-      >
-        ⏯ Pause/Resume
-      </button>
+  <div
+    class="soundContainer mb-2 content-start shadow-xl bg-black/30 p-2 backdrop-blur rounded-r-md rounded-l-xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 overflow-y-auto ml-4 mr-4 mt-0 h-auto"
+    bind:this={soundContainer}
+  >
+    {#if filteredList.length > 0}
+      {#each filteredList as { index, tag, duration, playCount }, n (index)}
+        <button
+          class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
+          use:soundButtonAnimateOnMount={{ n, index }}
+          on:click={async () => {
+            current?.sound?.index === index && (current.status === 'PLAYING' || current.status === 'PAUSED')
+              ? await pause()
+              : await play(index);
+          }}
+        >
+          <div class="w-full flex flex-col">
+            {#if current?.sound?.index === index}
+              {#if current.status === 'PLAYING'}
+                <span class="text-green-400 font-bold">⏸ pause</span>
+              {:else if current.status === 'PAUSED'}
+                <span class="text-yellow-400 font-bold">▶️ resume</span>
+              {:else}
+                <span>{tag}</span>
+              {/if}
+            {:else}
+              <span class="truncate">{tag}</span>
+            {/if}
+            <div class="text-[10px] text-gray-400 flex justify-between w-full">
+              <span># {index}</span>
+              <span>{duration}</span>
+              <span>▶ {playCount}</span>
+            </div>
+          </div>
+        </button>
+      {/each}
+      {#if currentUser?.isCheckedByAdmin}
+        <input type="file" accept="audio/*" multiple bind:this={soundFileInput} class="hidden" on:change={(e) => handleSoundFiles(e.currentTarget.files)}>
+
+        <button
+        class="bg-black/30 text-white text-xs sm:text-sm rounded-lg p-2 flex flex-col items-start justify-start gap-1 hover:bg-gray-700 transition duration-200 cursor-pointer h-12"
+        use:soundButtonAnimateOnMount={{n: filteredList.length}}
+        on:click={openSoundFileDialog}
+        on:dragover|preventDefault
+        on:drop={handleSoundDrop}
+        >
+            <div class="w-full flex flex-col">
+              <span>+</span>
+              <span>addSound</span>
+            </div>
+        </button>
+      {/if}
+    {:else}
+      <p class="text-gray-500">Загрузка звуков...</p>
+    {/if}
+  </div>
+
+  <div class="bottom-4 left-0 right-0 ml-4 mr-4">
+    <div class=" bg-black/50 backdrop-blur rounded-xl shadow-xl mb-2 h-10">
+      <div class="flex items-center gap-4 pr-4 pl-4 w-full">
+        <input
+          type="range"
+          max="100"
+          class="progressbar flex-grow rounded-xl w-full h-2 cursor-pointer"
+          style="background: linear-gradient(to right, gray {percentage}%, white {percentage}%)"
+          value={percentage}
+          on:input={(e) => jump(e.currentTarget.value)}
+        />
+        <div class="flex flex-col text-sm text-gray-300 h-10">
+          <span class="truncate w-32">
+            🎵 {current?.sound?.tag || current?.sound?.title || '—'}
+          </span>
+          <span class="text-xs text-gray-400">
+            {current?.positionmmss || '0:00'} / {current?.durationmmss || '0:00'}
+          </span>
+        </div>
+      </div>
     </div>
 
-    <div class="flex items-center gap-2 w-full sm:w-auto">
-      <span class="text-xl">
-        {#if volume == 0}
-          🔇
-        {:else if volume < 30}
-          🔈
-        {:else if volume < 70}
-          🔉
-        {:else}
-          🔊
-        {/if}
-      </span>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        value={volume}
-        on:input={(e) => setVolume(e.currentTarget.value)}
-        class="volumebar w-full sm:w-[150px] h-2 accent-blue-500 cursor-pointer rounded-xl"
-        style="background: linear-gradient(to right, gray {volume}%, white {volume}%)"
-      />
+    <div class=" bg-black/50 backdrop-blur rounded-xl shadow-xl h-20">
+      <div class="flex items-center justify-between p-4 gap-4">
+        <div class="flex gap-2">
+          <button
+            type="button"
+            on:click={stop}
+            class="px-3 w-32 h-12 text-sm bg-red-600 hover:bg-red-700 text-white rounded shadow-xl cursor-pointer"
+          >
+            ⏹ Stop
+          </button>
+          <button
+            type="button"
+            on:click={pause}
+            class="px-3 w-32 h-12 text-sm bg-yellow-500 hover:bg-yellow-600 text-black rounded shadow-xl cursor-pointer"
+          >
+            ⏯ Pause/Resume
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <span class="text-xl">
+            {#if volume == 0}
+              🔇
+            {:else if volume < 30}
+              🔈
+            {:else if volume < 70}
+              🔉
+            {:else}
+              🔊
+            {/if}
+          </span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            on:input={(e) => setVolume(e.currentTarget.value)}
+            class="volumebar w-full sm:w-[150px] h-2 accent-blue-500 cursor-pointer rounded-xl"
+            style="background: linear-gradient(to right, gray {volume}%, white {volume}%)"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </div>

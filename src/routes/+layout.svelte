@@ -5,7 +5,7 @@
 	import { onMount, tick } from 'svelte';
 	import { authFetch } from '$lib/auth/auth';
 	import { page } from '$app/stores';
-	import { userStore, fetchUser } from '$lib/auth/stores/user';
+	import { userStore, fetchUser } from '$lib/stores/user';
 
 	let sidePanelSize = new Tween(0, { duration: 200, easing: linear });
 	let sidePanelVisible = $state(false);
