@@ -28,6 +28,7 @@
 
 	onMount( () => {
 		fetchUser();
+		$inspect(currentUser)
 	})
 
 	onMount(async () => {
@@ -79,6 +80,9 @@
 	{#if sidePanelVisible}
 		<a href="/"><h1>Home</h1></a>
 		<a href="/soundpad"><h1>Soundpad</h1></a>
+		{#if currentUser && currentUser.isAdmin}
+			<a href="/soundpadhub">soundpadhub</a>
+		{/if}
 		<div class="absolute bottom-4">
 			{#if currentUser && currentUser.nickname}
 				<a href="/profile">{currentUser.nickname}</a>

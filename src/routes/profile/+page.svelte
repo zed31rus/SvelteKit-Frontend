@@ -1,6 +1,9 @@
 <script>
-  export let data;
-  let user = data.user;
+  let currentUser = $state(null);
+
+	userStore.subscribe(user => {
+		currentUser = user
+	})
 </script>
 
 <div class="profile flex flex-col items-center gap-4 mt-6">
@@ -10,12 +13,12 @@
       src={"/resources/avatar.png"}
       class="w-24 h-24 rounded-full border-2 border-gray-600 shadow-md"
     />
-    <h1 class="text-xl font-bold text-white">{user.nickname}</h1>
-    <p class="text-gray-400 text-sm">{user.email}</p>
-    {#if user.isAdmin}
+    <h1 class="text-xl font-bold text-white">{currentUser.nickname}</h1>
+    <p class="text-gray-400 text-sm">{currentUser.email}</p>
+    {#if currentUser.isAdmin}
       <span class="text-red-400 font-bold">Админ 👑</span>
     {/if}
-    {#if user.isCheckedByAdmin}
+    {#if currentUser.isCheckedByAdmin}
       <span class="text-green-400">✅ Проверен</span>
     {:else}
         <span class="text-red-400">❌Не проверен</span>

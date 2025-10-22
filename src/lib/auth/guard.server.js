@@ -1,18 +1,40 @@
 import { redirect } from "@sveltejs/kit";
 
-export async function requireUser(fetch, cookies) {
-    const AllCookies = cookies.getAll().map(c => `${c.name}=${c.value}`).join('; ')
-    const res = await fetch("https://auth.zed31rus.ru/me", {
-        headers: {
-            'Cookie': AllCookies
-        }
+export async function requireUser(fetch, cookies, requiredRole) {
+    const AllCookies = cookies.getAll().map(c => `${c.name}=${c.value}`).join('; ');
+    const cookieHeader = {
+        'Cookie': AllCookies
+    };
+
+    let meRes = await fetch("https://auth.zed31rus.ru/me", {
+        headers: cookieHeader
     });
 
-    if (!res.ok) {
-        throw redirect(303, '/authorization')
+    if (meRes.status === 401) {
+        const refreshRes = await fetch("https://auth.zed31rus.ru/refresh", {
+            headers: cookieHeader
+        })
+
+        if (!refreshRes.ok) {
+            throw redirect(303, '/authorization');
+        }
+
+        meRes = await fetch("https://auth.zed31rus.ru/me", {
+            headers: cookieHeader
+        });
+    }
+    
+    if (!meRes.ok) {
+         throw redirect(303, '/authorization');
     }
 
-    const data = await res.json()
-
-    return data.user
+    if (requiredRole) {
+        const user = await meRes.json();
+        
+        if (requiredRole === "admin") {
+            if (!user.isAdmin) {
+                throw redirect(303, '/authorization');
+            }
+        } 
+    }
 }

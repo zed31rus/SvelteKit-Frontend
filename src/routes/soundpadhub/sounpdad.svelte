@@ -4,6 +4,8 @@
   import { animate } from 'motion';
   import { fetchUser, userStore } from '$lib/stores/user';
 
+  export let socket;
+
   let soundList = [];
   let filteredList = [];
   let current = {};
@@ -21,8 +23,7 @@
   const INITIAL_STEP = 0.01;//10ms
   const BASE_NEW_DELAY = 0.005;//5ms
   const NEW_BATCH_STEP = 0.01;//10ms
-
-  let socket;
+  
   let sortMethod = 'index';
   let searchInput = "";
 
@@ -181,8 +182,6 @@
   }
 
   onMount(() => {
-    //socket = io('https://soundpadapi.zed31rus.ru');
-    socket = io("http://127.0.0.1:3002")
 
     socket.on('currentUpdated', (data) => {
       current = data;
@@ -261,7 +260,7 @@
           </div>
         </button>
       {/each}
-      {#if currentUser?.isCheckedByAdmin}
+      {#if /*currentUser?.isCheckedByAdmin*/ false}
         <input type="file" accept="audio/*" multiple bind:this={soundFileInput} class="hidden" on:change={(e) => handleSoundFiles(e.currentTarget.files)}>
 
         <button

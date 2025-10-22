@@ -1,5 +1,7 @@
 import { requireUser } from "$lib/auth/guard.server";
 
 export const load = async({fetch, cookies}) => {
-    await requireUser(fetch, cookies, "admin");
+    const user = await requireUser(fetch, cookies);
+
+    return { user }
 } 
