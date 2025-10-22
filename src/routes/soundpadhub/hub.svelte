@@ -1,5 +1,5 @@
 <script>
-    let { socket, selectednode } = $props();
+    let { socket = $bindable(), selectednode = $bindable() } = $props();
 
 
     socket.on("nodesChanged", (req, res) => {
@@ -7,15 +7,18 @@
     })
 
     function nodesClickHandler(node) {
-        selectednode = node.login
-        socket.emit("nodeConnect", node, (res) => {})
+        socket.emit("nodeConnect", node, (res) => {
+            if (res.ok) {
+                selectednode = node
+            }
+        })
     }
 
     let nodes = $state({})
     $inspect(nodes)
 
 </script>
-<div class="absolute l-1 t-1 mb-2 shadow-xl bg-black/30 p-2 backdrop-blur rounded-xl overflow-auto h-auto">
+<div class="mb-2 shadow-xl bg-black/30 p-2 backdrop-blur rounded-xl overflow-auto h-auto">
     <div class="content-start grid grid-cols-3 gap-1">
         {#each nodes as node}
             <button onclick={() => {nodesClickHandler(node)}} class="bg-black/30 p-2 backdrop-blur rounded-xl overflow-auto h-auto">

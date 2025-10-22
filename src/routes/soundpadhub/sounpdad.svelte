@@ -83,40 +83,27 @@
   }
 
   async function play(index) {
-    await fetch('https://soundpadapi.zed31rus.ru/soundpad/playSound', {
-      method: 'POST',
-      body: JSON.stringify({ soundId: index }),
-      headers: { 'Content-Type': 'application/json' }
-    });
+    socket.emit("play", {soundIndex: index}, (clientRes) => {
+    })
   }
 
   async function stop() {
-    await fetch('https://soundpadapi.zed31rus.ru/soundpad/stopSound', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+    socket.emit("stop", null, (clientRes) => {
     });
   }
 
-  async function pause() {
-    await fetch('https://soundpadapi.zed31rus.ru/soundpad/pauseSound', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+  async function togglePause() {
+    socket.emit("togglePause", null, (clientRes) => {
     });
   }
 
   async function jump(percentage) {
-    await fetch('https://soundpadapi.zed31rus.ru/soundpad/jump', {
-      method: 'POST',
-      body: JSON.stringify({ percentage }),
-      headers: { 'Content-Type': 'application/json' }
+    socket.emit("jump", {percentage: percentage}, (clientRes) => {
     });
   }
 
-  async function setVolume(volumeVal) {
-    await fetch('https://soundpadapi.zed31rus.ru/soundpad/setVolume', {
-      method: 'POST',
-      body: JSON.stringify({ volume: volumeVal }),
-      headers: { 'Content-Type': 'application/json' }
+  async function setVolume(volume) {
+    socket.emit("setVolume", {volume: volume}, (clientRes) => {
     });
   }
 
@@ -183,6 +170,8 @@
 
   onMount(() => {
 
+    socket.emit("initStates", null, (data) => {})
+
     socket.on('currentUpdated', (data) => {
       current = data;
       percentage = data.percentage;
@@ -236,7 +225,7 @@
           use:soundButtonAnimateOnMount={{ n, index }}
           on:click={async () => {
             current?.sound?.index === index && (current.status === 'PLAYING' || current.status === 'PAUSED')
-              ? await pause()
+              ? await togglePause()
               : await play(index);
           }}
         >
@@ -315,7 +304,7 @@
           </button>
           <button
             type="button"
-            on:click={pause}
+            on:click={togglePause}
             class="px-3 w-32 h-12 text-sm bg-yellow-500 hover:bg-yellow-600 text-black rounded shadow-xl cursor-pointer"
           >
             ⏯ Pause/Resume

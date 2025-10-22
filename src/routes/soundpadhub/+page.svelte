@@ -10,7 +10,7 @@
 {#if selectednode}
     <Soundpad socket={socket}/>
 {:else}
-    <Hub selectednode={selectednode} socket={socket}/>
+    <Hub bind:selectednode={selectednode} socket={socket}/>
 {/if}
 
 <svelte:head>
