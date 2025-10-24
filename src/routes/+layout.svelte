@@ -80,7 +80,7 @@
 	{#if sidePanelVisible}
 		<a href="/"><h1>Home</h1></a>
 		<a href="/soundpad"><h1>Soundpad</h1></a>
-		{#if currentUser && currentUser.isAdmin}
+		{#if currentUser}
 			<a href="/soundpadhub">soundpadhub</a>
 		{/if}
 		<div class="absolute bottom-4">
