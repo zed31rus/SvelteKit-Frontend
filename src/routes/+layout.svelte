@@ -12,9 +12,8 @@
 	let sidePanelLittle = $state(false);
 	let sidePanelRef = $state(null);
 	let hoverPanelRef = $state(null);
-	let nickname = $state(null);
-	let currentPage = $page.url.href;
 	let currentUser = $state(null);
+	fetchUser();
 	userStore.subscribe(user => {
 		currentUser = user
 	})
@@ -25,11 +24,6 @@
 		sidePanelVisible ? 256 :
 		sidePanelLittle ? 16 : 0
 	);
-
-	onMount( () => {
-		fetchUser();
-		$inspect(currentUser)
-	})
 
 	onMount(async () => {
 		await tick();

@@ -1,6 +1,6 @@
 import { redirect } from "@sveltejs/kit";
 
-export async function requireUser(fetch, cookies, requiredRole) {
+export async function guardPage(fetch, cookies, requiredRole) {
     const AllCookies = cookies.getAll().map(c => `${c.name}=${c.value}`).join('; ');
     const cookieHeader = {
         'Cookie': AllCookies

@@ -1,13 +1,17 @@
 <script>
+  import { userStore, fetchUser } from '$lib/stores/user';
+
   let currentUser = $state(null);
+
+  fetchUser()
 
 	userStore.subscribe(user => {
 		currentUser = user
 	})
 </script>
 
-<div class="profile flex flex-col items-center gap-4 mt-6">
-  <div class="bg-black/30 backdrop-blur rounded-xl shadow-xl p-6 flex flex-col items-center gap-4">
+{#if currentUser}
+  <div class="bg-black/30 backdrop-blur rounded-xl shadow-xl p-6 flex flex-col items-center gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-3/4 w-1/4 h-auto">
     <!-- svelte-ignore a11y_missing_attribute -->
     <img
       src={"/resources/avatar.png"}
@@ -21,11 +25,13 @@
     {#if currentUser.isCheckedByAdmin}
       <span class="text-green-400">✅ Проверен</span>
     {:else}
-        <span class="text-red-400">❌Не проверен</span>
+      <span class="text-red-400">❌Не проверен</span>
     {/if}
     <a href="/logout">Выйти</a>
   </div>
-</div>
+{:else}
+  <div class="text-white mt-10">Загружаем профиль...</div>
+{/if}
 
 <svelte:head>
   <title>zed31rus_ | Profile</title>
