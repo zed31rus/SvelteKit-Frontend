@@ -25,9 +25,6 @@
 		sidePanelLittle ? 16 : 0
 	);
 
-	onMount(async () => {
-		await tick();
-
 	$effect(() => {
 		sidePanelSize.target = targetSize;
 	});
