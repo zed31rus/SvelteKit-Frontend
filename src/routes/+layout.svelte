@@ -34,13 +34,6 @@
 	onMount(async () => {
 		await tick();
 
-		// анимашкээээ
-		setTimeout(() => { if (!sidePanelLittle  == true || !sidePanelVisible == true) {sidePanelSize.target = 8}}, 1000);
-		setTimeout(() => { if (!sidePanelLittle  == true || !sidePanelVisible == true) {sidePanelSize.target = 0}}, 1500);
-		setTimeout(() => { if (!sidePanelLittle  == true || !sidePanelVisible == true) {sidePanelSize.target = 8}}, 2000);
-		setTimeout(() => { if (!sidePanelLittle  == true || !sidePanelVisible == true) {sidePanelSize.target = 0}}, 2500);
-	});
-
 	$effect(() => {
 		sidePanelSize.target = targetSize;
 	});
