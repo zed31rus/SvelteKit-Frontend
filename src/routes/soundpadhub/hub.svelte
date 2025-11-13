@@ -1,19 +1,27 @@
 <script>
-    let { socket = $bindable(), selectednode = $bindable() } = $props();
+  import { userStore, fetchUser } from '$lib/stores/user';
+  let { socket = $bindable(), selectednode = $bindable() } = $props();
+  let currentUser = $state(null);
+	
+	$effect(() => {
+		fetchUser();
+	})
+	
+	userStore.subscribe(user => currentUser = user);
 
-    let nodes = $state({})
+  let nodes = $state({})
 
-    socket.on("nodesChanged", (req, res) => {
-        nodes = req
-    })
+  socket.on("nodesChanged", (req, res) => {
+      nodes = req
+  })
 
-    function nodesClickHandler(node) {
-        socket.emit("nodeConnect", node, (res) => {
-            if (res.ok) {
-                selectednode = node
-            }
-        })
-    }
+  function nodesClickHandler(node) {
+      socket.emit("nodeConnect", node, (res) => {
+          if (res.ok) {
+              selectednode = node
+          }
+      })
+  }
 
 
 </script>
@@ -42,7 +50,7 @@
       </div>
     {/if}
 
-    {#if window?.socketApi?.activateSocket}
+    {#if window?.socketApi?.activateSocket && currentUser}
       <div class="flex justify-center mt-4">
         <button
           onclick={async () => await window?.socketApi?.activateSocket()}

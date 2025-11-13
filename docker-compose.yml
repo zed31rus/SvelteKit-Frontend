@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: zed31rus.ru
+    env_file:
+      - ./.env
+    ports:
+      - "3001:3001"
+    restart: always

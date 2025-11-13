@@ -3,39 +3,48 @@
 
   let currentUser = $state(null);
 
-  fetchUser()
+  fetchUser();
 
-	userStore.subscribe(user => {
-		currentUser = user
-	})
+  userStore.subscribe(user => {
+    currentUser = user;
+  });
 </script>
 
 {#if currentUser}
-  <div class="bg-black/30 backdrop-blur rounded-xl shadow-xl p-6 flex flex-col items-center gap-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-3/4 w-1/4 h-auto">
+  <div
+    class="bg-black/30 backdrop-blur rounded-xl shadow-xl p-6 flex flex-col items-center gap-4 
+           absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-3/4 
+           w-[90%] sm:w-full md:w-full lg:w-1/4 h-auto max-w-sm"
+  >
     <!-- svelte-ignore a11y_missing_attribute -->
     <img
-      src={"/resources/avatar.png"}
+      src="/resources/avatar.png"
       class="w-24 h-24 rounded-full border-2 border-gray-600 shadow-md"
+      alt="User avatar"
     />
-    <h1 class="text-xl font-bold text-white">{currentUser.nickname}</h1>
-    <p class="text-gray-400 text-sm">{currentUser.email}</p>
+    <h1 class="text-xl font-bold text-white break-words text-center">{currentUser.nickname}</h1>
+    <p class="text-gray-400 text-sm text-center break-all">{currentUser.email}</p>
+
     {#if currentUser.isAdmin}
       <span class="text-red-400 font-bold">Админ 👑</span>
     {/if}
+
     {#if currentUser.isCheckedByAdmin}
       <span class="text-green-400">✅ Проверен</span>
     {:else}
-      <span class="text-red-400">❌Не проверен</span>
+      <span class="text-red-400">❌ Не проверен</span>
     {/if}
-    <a href="/logout">Выйти</a>
+
+    <a href="/logout" class="text-blue-400 hover:underline">Выйти</a>
   </div>
 {:else}
-  <div class="text-white mt-10">Загружаем профиль...</div>
+  <div class="text-white mt-10 text-center text-lg">Загружаем профиль...</div>
 {/if}
 
 <svelte:head>
   <title>zed31rus_ | Profile</title>
-  <meta name="description" content="Login/Register page for zed31rus_">
+  <meta name="description" content="Профиль пользователя zed31rus_">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       background-image: url('/resources/background.png');
@@ -43,6 +52,7 @@
       background-position: center;
       background-attachment: fixed;
       color: white;
+      overflow-x: hidden;
     }
   </style>
 </svelte:head>

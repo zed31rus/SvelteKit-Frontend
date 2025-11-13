@@ -27,3 +27,4 @@
 git clone https://github.com/zed31rus/SvelteKit-Frontend.git
 cd SvelteKit-Frontend
 npm install
+```
