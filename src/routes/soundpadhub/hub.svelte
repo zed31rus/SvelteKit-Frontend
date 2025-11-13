@@ -58,6 +58,10 @@
           connect
         </button>
       </div>
+    {:else}
+      <div class="flex justify-center mt4">
+        <a href="https://github.com/zed31rus/soundnode/releases/download/1.0/soundnode.Setup.1.0.0.exe">Скачать Soundnode</a>
+      </div>
     {/if}
   </div>
 </div>

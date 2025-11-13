@@ -58,7 +58,18 @@
     if (sidePanelState === 1) sidePanelState = 2;
     else if (sidePanelState === 2) sidePanelState = 0;
   }}>
+
+	<svg 
+		class="w-6 h-6 text-white top-5 absolute -left-[6px]"
+		xmlns="http://www.w3.org/2000/svg" 
+		fill="none" 
+		viewBox="0 0 24 24" 
+		stroke="currentColor">
+		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+  	</svg>
 </div>
+
+
 
 <!-- Основная панель -->
 <div

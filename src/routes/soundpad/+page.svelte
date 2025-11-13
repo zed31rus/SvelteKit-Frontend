@@ -181,8 +181,8 @@
   }
 
   onMount(() => {
-    //socket = io('https://soundpadapi.zed31rus.ru');
-    socket = io("http://127.0.0.1:3002")
+    socket = io('https://soundpadapi.zed31rus.ru');
+    //socket = io("http://127.0.0.1:3002")
 
     socket.on('currentUpdated', (data) => {
       current = data;
