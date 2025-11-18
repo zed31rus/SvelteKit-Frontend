@@ -1,7 +1,13 @@
 <script>
-  import { userStore, fetchUser } from '$lib/stores/user';
+  import { userStore, fetchUser } from '$lib/stores/user.js';
+  import { patchUserProfile } from '$lib/utils/patchUserProfile.js';
 
   let currentUser = $state(null);
+  let nickname = $state('');
+  let email = $state('');
+  let password = $state('');
+  let avatarFile = null;
+  let avatarInput;
 
   fetchUser();
 
@@ -16,12 +22,31 @@
            absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-3/4 
            w-[90%] sm:w-full md:w-full lg:w-1/4 h-auto max-w-sm"
   >
-    <!-- svelte-ignore a11y_missing_attribute -->
-    <img
-      src="/resources/avatar.png"
-      class="w-24 h-24 rounded-full border-2 border-gray-600 shadow-md"
-      alt="User avatar"
+    <button
+      type="button"
+      class="rounded-full"
+      onclick={() => avatarInput.click()}
+    >
+      <img
+        src={currentUser.avatar || "/resources/avatar.png"}
+        class="w-24 h-24 rounded-full border-2 border-gray-600 shadow-md"
+        alt="User avatar"
+      />
+    </button>
+
+    <input
+      type="file"
+      accept="image/*"
+      bind:this={avatarInput}
+      onchange={async (e) => {
+        avatarFile = e.target.files[0]
+        if (!avatarFile) return
+
+        await patchUserProfile(null, null, null, avatarFile)
+      }}
+      style="display:none"
     />
+
     <h1 class="text-xl font-bold text-white break-words text-center">{currentUser.nickname}</h1>
     <p class="text-gray-400 text-sm text-center break-all">{currentUser.email}</p>
 
@@ -34,6 +59,18 @@
     {:else}
       <span class="text-red-400">❌ Не проверен</span>
     {/if}
+
+    <form onsubmit={(e) => {
+      e.preventDefault()
+      patchUserProfile(nickname, email, password)
+    }}>
+
+      <input type="text" bind:value={nickname} placeholder="Новый ник"/>
+      <input type="email" bind:value={email} placeholder="Новый email"/>
+      <input type="password" bind:value={password} placeholder="Новый пароль"/>
+
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Сохранить</button>
+    </form>
 
     <a href="/logout" class="text-blue-400 hover:underline">Выйти</a>
   </div>
