@@ -7,7 +7,7 @@
   let email = $state('');
   let password = $state('');
   let avatarFile = null;
-  let avatarInput;
+  let avatarInput = $state();
 
   fetchUser();
 
@@ -16,12 +16,12 @@
   });
 </script>
 
-{#if currentUser}
   <div
     class="bg-black/30 backdrop-blur rounded-xl shadow-xl p-6 flex flex-col items-center gap-4 
-           absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-3/4 
+           absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
            w-[90%] sm:w-full md:w-full lg:w-1/4 h-auto max-w-sm"
   >
+  {#if currentUser}
     <button
       type="button"
       class="rounded-full"
@@ -30,7 +30,7 @@
       <img
         src={currentUser.avatar || "/resources/avatar.png"}
         class="w-24 h-24 rounded-full border-2 border-gray-600 shadow-md"
-        alt="User avatar"
+        alt="{nickname} avatar"
       />
     </button>
 
@@ -73,10 +73,10 @@
     </form>
 
     <a href="/logout" class="text-blue-400 hover:underline">Выйти</a>
+  {:else}
+    <div class="text-white mt-10 text-center text-lg">Загружаем профиль...</div>
+  {/if}
   </div>
-{:else}
-  <div class="text-white mt-10 text-center text-lg">Загружаем профиль...</div>
-{/if}
 
 <svelte:head>
   <title>zed31rus_ | Profile</title>

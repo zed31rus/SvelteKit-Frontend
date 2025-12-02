@@ -1,13 +1,15 @@
 <script>
   import { userStore, fetchUser } from '$lib/stores/user';
+    import { onMount } from 'svelte';
   let { socket = $bindable(), selectednode = $bindable() } = $props();
   let currentUser = $state(null);
+  let socketState = $state(null);
 	
-	$effect(() => {
+	onMount(() => {
 		fetchUser();
 	})
 	
-	userStore.subscribe(user => currentUser = user);
+	userStore.subscribe((user) => {currentUser = user});
 
   let nodes = $state({})
 
@@ -23,6 +25,13 @@
       })
   }
 
+  onMount(() => {
+    if (window?.socketApi?.onSocketStatusUpdate) {
+      window.socketApi.onSocketStatusUpdate((state) => {
+        socketState = state
+      })
+    }
+  })  
 
 </script>
 <div class="absolute left-1/2 -translate-x-1/2 bottom-[calc(50%+100px)] transform translate-y-[calc(75%-50px)] w-1/2 h-3/4 space-y-4">
@@ -61,14 +70,22 @@
     {#if window?.socketApi?.activateSocket && currentUser}
       <div class="flex justify-center mt-4">
         <button
-          onclick={async () => await window?.socketApi?.activateSocket()}
+          onclick={async () => socketState ? window?.socketApi?.disconnectSocket() : await window?.socketApi?.activateSocket()}
           class="px-4 py-2 bg-black/40 rounded-lg hover:bg-black/60 transition">
-          Подключится
+          {#if !socketState}
+            Подключиться
+          {:else if socketState == "CONNECTING"}
+            Подключение...
+          {:else if socketState == "CONNECTED"}
+            Аутентификация...
+          {:else if socketState == "AUTHED"}
+            Отключиться
+          {/if}
         </button>
       </div>
     {:else}
       <div class="flex justify-center mt-4">
-        <a href="https://github.com/zed31rus/soundnode/releases/download/1.0/soundnode.Setup.1.0.0.exe">Скачать Soundnode</a>
+        <a href=https://github.com/zed31rus/soundnode/releases/download/1.1.0/soundnode.Setup.exe>Скачать Soundnode</a>
       </div>
     {/if}
   </div>

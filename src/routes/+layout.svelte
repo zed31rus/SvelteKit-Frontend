@@ -2,7 +2,8 @@
 	import { Tween } from 'svelte/motion';
 	import { linear } from 'svelte/easing';
 	import '../app.css';
-	import { userStore, fetchUser } from '$lib/stores/user';
+	import { userStore, fetchUser } from '$lib/stores/user.js';
+    import { onMount } from 'svelte';
 
 	let sidePanelSize = new Tween(0, { duration: 200, easing: linear });
 	let sidePanelState = $state(0); // 0 = закрыта, 1 = hover, 2 = открыта
@@ -10,7 +11,7 @@
 	let hoverPanelRef = $state(null);
 	let currentUser = $state(null);
 	
-	$effect(() => {
+	onMount(() => {
 		fetchUser();
 	})
 	
@@ -27,7 +28,7 @@
 		sidePanelSize.target = targetSize;
 	});
 
-	$effect(() => {
+	onMount(() => {
 		function handleClickOutside(event) {
 			if (
 				sidePanelRef && !sidePanelRef.contains(event.target) &&
