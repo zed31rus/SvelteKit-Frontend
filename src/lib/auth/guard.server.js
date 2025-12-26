@@ -15,10 +15,11 @@ export async function guardPage(fetch, cookies, requiredRole) {
     }
 
     if (requiredRole) {
-        const user = await Res.json();
+        const body = await Res.json();
+        console.log(body)
         
         if (requiredRole === "admin") {
-            if (!user.isAdmin) {
+            if (!body?.user?.isAdmin) {
                 throw redirect(303, '/profile');
             }
         } 

@@ -1,7 +1,7 @@
 <script>
-    import { fetchUser } from "$lib/stores/user";
+  import { fetchUser } from "$lib/stores/user";
 
-  let mode = 'login'; // "login" или "register"
+  let mode = "login";
 
   let login = "";
   let email = "";
@@ -9,117 +9,168 @@
   let nickname = "";
 
   async function submitForm() {
-    const endpoint = mode === 'login'
-      ? 'https://auth.zed31rus.ru/login'
-      : 'https://auth.zed31rus.ru/register';
 
-    const body = mode === 'login'
-      ? { login, password }
-      : { login, email, password, nickname };
+    if (mode === "login") {
 
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: "include",
-        body: JSON.stringify(body)
-      });
+      try {
+        const res = await fetch("https://auth.zed31rus.ru/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            login: login,
+            password: password
+          })
+        });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+        fetchUser();
+        window.location.href = "/profile";
+      } catch (err) {
+        alert("Ошибка");
+        console.error(err);
+      }
+    }
 
-      window.location.href = "/profile"
-      
-      fetchUser();
-    } catch (err) {
-      alert("Ошибка: " + err.message);
-      console.error(err)
+    else if (mode === "register") {
+      try {
+        const res = await fetch("https://auth.zed31rus.ru/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            login: login.trim(),
+            email: email.trim(),
+            nickname: nickname.trim(),
+            password: password
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Ошибка регистрации: " + (data.message || res.status));
+          console.error(data);
+          return;
+        }
+      } catch (err) {
+        alert("Ошибка");
+        console.error(err);
+      }
     }
   }
 </script>
 
-<div class="flex items-center justify-center h-screen">
-  <div class="bg-black/50 backdrop-blur-md rounded-2xl shadow-xl p-8 w-full max-w-md flex flex-col gap-6">
-    <h1 class="text-center text-2xl font-bold">
-      {mode === 'login' ? 'Вход' : 'Регистрация'}
+<div class="flex items-center justify-center h-screen px-4">
+  <div class="bg-black/50 backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-md flex flex-col gap-6 border border-white/10">
+
+    <!-- Title -->
+    <h1 class="text-center text-3xl font-extrabold tracking-wide drop-shadow-md">
+      {mode === "login" ? "Вход" : "Регистрация"}
     </h1>
 
-    <form on:submit|preventDefault={submitForm} class="flex flex-col gap-4">
+    <form class="flex flex-col gap-4" on:submit|preventDefault={submitForm}>
 
-      {#if mode === 'login'}
-        <!-- login -->
-        <input
-          type="text"
-          placeholder="Логин"
-          bind:value={login}
-          class="px-4 py-2 bg-black/30 border-0 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-        />
+      {#if mode === "login"}
 
-        <!-- password -->
-        <input
-          type="password"
-          placeholder="Пароль"
-          bind:value={password}
-          class="px-4 py-2 bg-black/30 border-0 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-        />
-      {:else if mode === 'register'}
-        <!-- login -->
-        <input
-          type="text"
-          placeholder="Логин"
-          bind:value={login}
-          class="px-4 py-2 bg-black/30 border-0 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-        />
+        <!-- ЛОГИН -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-300">Логин</label>
+          <input
+            type="text"
+            bind:value={login}
+            placeholder="Введите логин"
+            class="px-4 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
 
-        <!-- email -->
-        <input
-          type="email"
-          placeholder="Email"
-          bind:value={email}
-          class="px-4 py-2 bg-black/30 border-0 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-        />
+        <!-- ПАРОЛЬ -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-300">Пароль</label>
+          <input
+            type="password"
+            bind:value={password}
+            placeholder="Введите пароль"
+            class="px-4 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
 
-        <!-- password -->
-        <input
-          type="password"
-          placeholder="Пароль"
-          bind:value={password}
-          class="px-4 py-2 bg-black/30 border-0 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-        />
+      {:else}
 
-        <!-- nickname -->
-        <input
-          type="text"
-          placeholder="Никнейм"
-          bind:value={nickname}
-          class="px-4 py-2 bg-black/30 border-0 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-        />
+        <!-- ЛОГИН -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-300">Логин</label>
+          <input
+            type="text"
+            bind:value={login}
+            placeholder="Введите логин"
+            class="px-4 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <!-- EMAIL -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-300">Email</label>
+          <input
+            type="email"
+            bind:value={email}
+            placeholder="Введите email"
+            class="px-4 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <!-- ПАРОЛЬ -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-300">Пароль</label>
+          <input
+            type="password"
+            bind:value={password}
+            placeholder="Введите пароль"
+            class="px-4 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <!-- НИКНЕЙМ -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm text-gray-300">Никнейм</label>
+          <input
+            type="text"
+            bind:value={nickname}
+            placeholder="Введите никнейм"
+            class="px-4 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
       {/if}
 
+      <!-- SUBMIT -->
       <button
         type="submit"
-        class="bg-blue-600 hover:bg-blue-700 transition text-white rounded-lg px-4 py-2 font-semibold shadow-lg"
+        class="bg-blue-600 hover:bg-blue-700 transition-colors text-white font-semibold rounded-xl p-3 shadow-md mt-2"
       >
-        {mode === 'login' ? 'Войти' : 'Зарегистрироваться'}
+        {mode === "login" ? "Войти" : "Зарегистрироваться"}
       </button>
     </form>
 
-    <div class="text-center text-sm text-gray-400">
-      {#if mode === 'login'}
+
+    <!-- SWITCH MODE -->
+    <div class="text-center text-sm text-gray-300 pt-2">
+      {#if mode === "login"}
         Нет аккаунта?
         <button
-          type="button"
-          class="text-blue-400 hover:underline"
-          on:click={() => mode = 'register'}
+          class="text-blue-400 hover:text-blue-300 hover:underline transition"
+          on:click={() => mode = "register"}
         >
           Зарегистрироваться
         </button>
       {:else}
         Уже есть аккаунт?
         <button
-          type="button"
-          class="text-blue-400 hover:underline"
-          on:click={() => mode = 'login'}
+          class="text-blue-400 hover:text-blue-300 hover:underline transition"
+          on:click={() => mode = "login"}
         >
           Войти
         </button>
@@ -130,7 +181,7 @@
 
 <svelte:head>
   <title>zed31rus_ | Auth</title>
-  <meta name="description" content="Login/Register page for zed31rus_">
+  <meta name="description" content="Login/Register page for zed31rus_" />
   <style>
     body {
       background-image: url('/resources/background.png');

@@ -1,8 +1,4 @@
 <script>
-    import { Tween } from "svelte/motion";
-    import { linear } from "svelte/easing";
-
-    let DevHeiht = new Tween(0, { duration: 800, easing: linear });
 </script>
 
 <div class="min-h-screen flex flex-col items-center gap-5 text-white p-4 text-center">
